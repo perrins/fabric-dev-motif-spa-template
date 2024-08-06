@@ -1,0 +1,11 @@
+npm config set @ey-xd:registry=https://$MOTIF_ARTIF_REGISTRY_URL/
+npm config set //$MOTIF_ARTIF_REGISTRY_URL/:_password="$MOTIF_SERVICE_ACCOUNT_PASS"
+npm config set //$MOTIF_ARTIF_REGISTRY_URL/:username="$MOTIF_SERVICE_ACCOUNT"
+npm config set //$MOTIF_ARTIF_REGISTRY_URL/:email="$MOTIF_SERVICE_ACCOUNT"
+npm config set @ey:registry=https://$MFE_CORE_ARTIF_REGISTRY_URL/
+npm config set //$MFE_CORE_ARTIF_REGISTRY_URL/:_password="$MFE_CORE_SERVICE_ACCOUNT_PASS"
+npm config set //$MFE_CORE_ARTIF_REGISTRY_URL/:username="$MFE_CORE_SERVICE_ACCOUNT"
+npm config set //$MFE_CORE_ARTIF_REGISTRY_URL/:email="$MFE_CORE_SERVICE_ACCOUNT"
+npm config set @ey-studio-phl:registry=https://npm.ey-intuitive.com
+npm config set registry=https://registry.npmjs.com/
+npm set save-exact=true

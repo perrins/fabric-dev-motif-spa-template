@@ -1,0 +1,138 @@
+{
+    "environments": [
+        {
+            "name": "dev",
+            "vars": [
+                {
+                    "name": "SA_BASE_URL",
+                    "value": "please fill",
+                    "type": "variable"
+                },
+                {
+                    "name": "STORAGE_ACCOUNT_NAME",
+                    "value": "please fill",
+                    "type": "variable"
+                },
+                {
+                    "name": "APP_ID",
+                    "value": "please fill",
+                    "type": "variable"
+                },
+                {
+                    "name": "HEADER_URL",
+                    "value": "https://fabric-dev.ey.com/header/",
+                    "type": "variable"
+                },
+                {
+                    "name": "FOOTER_URL",
+                    "value": "https://fabric-dev.ey.com/footer/",
+                    "type": "variable"
+                }
+            ]
+        }
+    ],
+        "common_env_vars": [
+                {
+                    "name": "TENANT_ID",
+                    "value": "please fill",
+                    "type": "variable"
+                }
+    ],
+    "repo_level":[
+        {
+            "name": "CHECKMARX_TEAM",
+            "value": "please fill",
+            "type": "variable"
+        },
+        {
+            "name": "CHECKMARX_USERNAME",
+            "value": "please fill",
+            "type": "variable"
+        },
+        {
+            "name": "CHECKMARX_URL",
+            "value": "https://vmey.checkmarx.net/",
+            "type": "variable"
+        },
+        {
+            "name": "PROJECT_NAME",
+            "value": "please fill",
+            "type": "variable"
+        },
+        {
+            "name": "PROJECT_PORTFOLIO",
+            "value": "please fill",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_EMAIL_MFE",
+            "value": "EY_Fabric_MicroFrontends.GID@ey.net",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_EMAIL_MOTIF",
+            "value": "motif_service_account",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_MFE_REGISTRY_URL",
+            "value": "eyctpeu.jfrog.io/artifactory/api/npm/ey-microapp-platform-npm-prod-eu/",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_MOTIF_REGISTRY_URL",
+            "value": "eyctpeu.jfrog.io/artifactory/api/npm/eyctxd-motif-npm-prod-eu/",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_USER_MFE",
+            "value": "microapp-platform-npm-service-account",
+            "type": "variable"
+        },
+        {
+            "name": "JFROG_NPM_USER_MOTIF",
+            "value": "motif_service_account",
+            "type": "variable"
+        },
+        {
+            "name": "NODE_VERSION",
+            "value": "18.x",
+            "type": "variable"
+        },
+        {
+            "name": "AZURE_CREDS",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "CHECKMARX_CLIENT_SECRET",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "CHECKMARX_PASSWORD",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "APM_ID",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "SPR_ID",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "JFROG_NPM_TOKEN_MFE",
+            "value": "please fill",
+            "type": "secret"
+        },
+        {
+            "name": "JFROG_NPM_TOKEN_MOTIF",
+            "value": "please fill",
+            "type": "secret"
+        }
+    ]
+}

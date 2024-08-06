@@ -1,0 +1,55 @@
+on:
+  workflow_call:
+    inputs:
+      github_actions_env:
+        type: string
+        required: true
+
+    secrets:
+      AZURE_CREDS:
+        required: true
+
+jobs:
+  mfe_deployment:
+    name: Deploy
+    environment: ${{ inputs.github_actions_env }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: mfe-build-artifact
+          path: dist
+
+      - name: Configure .env.deployment creds
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '#{'
+          tokenSuffix: '}#'
+          files: '["dist/static/js/*.*", "dist/*.*", "dist/static/css/*.*", "dist/static/media/*.*", "dist/*.html", "dist/*.ico", "dist/*.json"]'
+        env:
+          BaseURL: ${{ vars.SA_BASE_URL }}
+          ClientID: ${{ vars.APP_ID }}
+          TenantID: ${{ vars.TENANT_ID }}
+          HeaderURL: ${{ vars.HEADER_URL }}
+          FooterURL: ${{ vars.FOOTER_URL }}
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDS }}
+
+      - name: Enable Static Website on Storage Acoount - ${{ vars.STORAGE_ACCOUNT_NAME }}
+        run: |
+          az storage blob service-properties update --account-name ${{ vars.STORAGE_ACCOUNT_NAME }} --static-website --404-document index.html --index-document index.html
+
+      - name: Delete files from ${{ vars.STORAGE_FOLDER_NAME }} directory of web container
+        run: |
+          az storage blob delete-batch --account-name ${{ vars.STORAGE_ACCOUNT_NAME }} --source "\$web" --pattern "static/*;*.json;*.ico;*.html"
+
+      - name: Copy new files in ${{ vars.STORAGE_FOLDER_NAME }} directory of web container
+        run: |
+          az storage azcopy blob upload --container '$web' --account-name ${{ vars.STORAGE_ACCOUNT_NAME }} --source "./dist/*" --recursive

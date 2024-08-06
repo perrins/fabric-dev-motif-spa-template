@@ -1,0 +1,255 @@
+on:
+  workflow_call:
+    inputs:
+      project_folder:
+        type: string
+        required: true
+      node_version:
+        type: string
+        required: true
+      project_name:
+        type: string
+        required: true
+      checkmarx_project_name:
+        type: string
+        required: true
+      test_folder:
+        type: string
+        required: true
+      jfrog_npm_registry_url:
+        type: string
+        required: true
+      jfrog_npm_username:
+        type: string
+        required: true
+      jfrog_npm_email:
+        type: string
+        required: true
+      jfrog_npm_username_microapp:
+        type: string
+        required: true
+      jfrog_npm_email_microapp:
+        type: string
+        required: true
+      jfrog_npm_microapp_registry_url:
+        type: string
+        required: true
+      portfolio_project:
+        type: string
+        required: true
+      sonarqube_sources:
+        type: string
+        required: true
+      sonarqube_host:
+        type: string
+        required: true
+
+    secrets:
+      JFROG_NPM_TOKEN:
+        required: true
+      CHECKMARX_PASSWORD:
+        required: true
+      CHECKMARX_CLIENT_SECRET:
+        required: true
+      JFROG_NPM_TOKEN_MICROAPP:
+        required: true
+      APM_ID:
+        required: true
+      SPR_ID:
+        required: true
+      SONAR_TOKEN:
+        required: true
+      MEND_ACTION_STS:
+        required: true
+      ARCHER_SPR_API_TOKEN:
+        required: true
+      INFOSEC_CONNECTIONKEY:
+        required: true
+
+jobs:
+  build:
+    name: Sonarqube
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Copy .npmrc to root folder
+        run: |
+          cp ./.github/workflows/env/npmrc .npmrc
+
+      - name: Configure npm creds
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '[".npmrc"]'
+        env:
+          jfrog_registry_ey-xd: ${{ inputs.jfrog_npm_registry_url }}
+          jfrog_username: ${{ inputs.jfrog_npm_username }}
+          jfrog_email: ${{ inputs.jfrog_npm_email }}
+          jfrog_username_microapp: ${{ inputs.jfrog_npm_username_microapp }}
+          jfrog_email_microapp: ${{ inputs.jfrog_npm_email_microapp }}
+          jfrog_token: ${{ secrets.JFROG_NPM_TOKEN }}
+          jfrog_registry_microapp: ${{ inputs.jfrog_npm_microapp_registry_url }}
+          jfrog_token_microapp: ${{ secrets.JFROG_NPM_TOKEN_MICROAPP }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: npm install
+        run: |
+          npm install
+
+      - name: npm build
+        run: |
+          npm run build
+
+      - name: npm test
+        continue-on-error: true
+        run: |
+          npm run test
+
+      - name: Code Coverage Summary Report
+        continue-on-error: true
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: 'coverage/cobertura-coverage.xml'
+          badge: true
+          format: 'markdown'
+          output: 'both'
+
+      # - name: Add Coverage PR Comment
+      #   uses: marocchino/sticky-pull-request-comment@v2
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     recreate: true
+      #     path: code-coverage-results.md
+
+      - name: Write to Job Summary
+        run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Code-Coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: coverage/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mfe-build-artifact
+          path: dist/
+
+      - name: SonarQube Scan and continue on error
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ inputs.sonarqube_host }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=${{ inputs.project_name }}
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.verbose=true
+
+
+  checkmarx:
+    name: Checkmarx
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Copy .npmrc to root folder
+        run: |
+          cp ./.github/workflows/env/npmrc .npmrc
+
+      - name: Configure npm creds
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '[".npmrc"]'
+        env:
+          jfrog_registry_ey-xd: ${{ inputs.jfrog_npm_registry_url }}
+          jfrog_username: ${{ inputs.jfrog_npm_username }}
+          jfrog_email: ${{ inputs.jfrog_npm_email }}
+          jfrog_username_microapp: ${{ inputs.jfrog_npm_username_microapp }}
+          jfrog_email_microapp: ${{ inputs.jfrog_npm_email_microapp }}
+          jfrog_token: ${{ secrets.JFROG_NPM_TOKEN }}
+          jfrog_registry_microapp: ${{ inputs.jfrog_npm_microapp_registry_url }}
+          jfrog_token_microapp: ${{ secrets.JFROG_NPM_TOKEN_MICROAPP }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Checkmarx CxFlow Action
+        uses: checkmarx-ts/checkmarx-cxflow-github-action@v1.5
+        continue-on-error: true
+        with:
+          project: ${{ inputs.checkmarx_project_name }}
+          team: ${{ vars.CHECKMARX_TEAM }}
+          checkmarx_url: ${{ vars.CHECKMARX_URL }}
+          checkmarx_username: ${{ vars.CHECKMARX_USERNAME }}
+          checkmarx_password: ${{ secrets.CHECKMARX_PASSWORD }}
+          checkmarx_client_secret: ${{ secrets.CHECKMARX_CLIENT_SECRET }}
+          #break_build: false
+          scanners: sast
+          bug_tracker: Sarif
+          preset: EY-Recommended
+          #params: --cx-flow.comment-script= "\ScanComment.groovy"
+
+  whitesource:
+    name: Whitesource (Mend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Copy .npmrc to root folder
+        run: |
+          cp ./.github/workflows/env/npmrc .npmrc
+
+      - name: Configure npm creds
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '[".npmrc"]'
+        env:
+          jfrog_registry_ey-xd: ${{ inputs.jfrog_npm_registry_url }}
+          jfrog_username: ${{ inputs.jfrog_npm_username }}
+          jfrog_email: ${{ inputs.jfrog_npm_email }}
+          jfrog_username_microapp: ${{ inputs.jfrog_npm_username_microapp }}
+          jfrog_email_microapp: ${{ inputs.jfrog_npm_email_microapp }}
+          jfrog_token: ${{ secrets.JFROG_NPM_TOKEN }}
+          jfrog_registry_microapp: ${{ inputs.jfrog_npm_microapp_registry_url }}
+          jfrog_token_microapp: ${{ secrets.JFROG_NPM_TOKEN_MICROAPP }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: npm install
+        run: |
+          npm install
+
+      - name: 'Mend (formerly whitesource) Scan'
+        uses: ey-org/oss-scanner@actions-typescript
+        continue-on-error: true
+        with:
+          apm-id: ${{ secrets.APM_ID }}
+          spr-id: ${{ secrets.SPR_ID }}
+          portfolio: ${{ vars.PROJECT_PORTFOLIO }}
+          projectName: ${{ inputs.project_name }}
+          # DO NOT CHANGE
+          mend-key: ${{ secrets.MEND_ACTION_STS }}
+          validationKey: ${{ secrets.ARCHER_SPR_API_TOKEN }}
+          connectionKey: ${{ secrets.INFOSEC_CONNECTIONKEY }}

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@views/*": ["src/views/*"],
+      "map_header/Header": ["src/__mocks__/HeaderMock"],
+      "map_footer/Footer": ["src/__mocks__/FooterMock"]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+@ey-xd:registry=https://__jfrog_registry_ey-xd__
+//__jfrog_registry_ey-xd__:_password=__jfrog_token__
+//__jfrog_registry_ey-xd__:username=__jfrog_username__
+//__jfrog_registry_ey-xd__:email=__jfrog_email__
+//__jfrog_registry_ey-xd__:always-auth=true
+
+@ey:registry=https://__jfrog_registry_microapp__
+//__jfrog_registry_microapp__:_password=__jfrog_token_microapp__
+//__jfrog_registry_microapp__:username=__jfrog_username_microapp__
+//__jfrog_registry_microapp__:email=__jfrog_email_microapp__
+//__jfrog_registry_microapp__:always-auth=true
+
+@ey-studio-phl:registry=https://npm.ey-intuitive.com
+registry=https://registry.npmjs.com/
+
+save-exact=true
+always-auth=true

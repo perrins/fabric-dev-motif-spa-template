@@ -1,0 +1,89 @@
+name: MFE-Build-Deployment
+on:
+  pull_request: 
+    types: [opened, synchronize]
+    branches: ['develop', 'master']
+
+  push:
+    branches: [ 'master', 'develop', 'feature/*', 'fix/*', 'release-*', 'dependabot/*' ]
+
+  workflow_dispatch:
+
+jobs:
+
+  code-scanners:
+    name: Build and Scan
+    uses: ./.github/workflows/sw_code-scanners.yml
+    if: ${{ github.run_number != '1' }}
+    with:
+      project_folder: "."
+      test_folder: "."
+      sonarqube_sources: "src"
+      node_version: ${{ vars.NODE_VERSION }}
+      project_name: ${{ vars.PROJECT_NAME }}
+      checkmarx_project_name: ${{ vars.PROJECT_NAME }}
+      jfrog_npm_registry_url: ${{ vars.JFROG_NPM_MOTIF_REGISTRY_URL }}
+      jfrog_npm_microapp_registry_url: ${{ vars.JFROG_NPM_MFE_REGISTRY_URL }}
+      jfrog_npm_username: ${{ vars.JFROG_NPM_USER_MOTIF }}
+      jfrog_npm_email: ${{ vars.JFROG_NPM_EMAIL_MOTIF }}
+      jfrog_npm_username_microapp: ${{ vars.JFROG_NPM_USER_MFE }}
+      jfrog_npm_email_microapp: ${{ vars.JFROG_NPM_EMAIL_MFE }}
+      portfolio_project: ${{ vars.PROJECT_PORTFOLIO }}
+      sonarqube_host: ${{ vars.SONAR_HOST_URL }}
+    secrets:
+      # api token of the account you use for your npm registry
+      JFROG_NPM_TOKEN: ${{ secrets.JFROG_NPM_TOKEN_MOTIF }}
+      JFROG_NPM_TOKEN_MICROAPP: ${{ secrets.JFROG_NPM_TOKEN_MFE }}
+      # your checkmarx password
+      CHECKMARX_PASSWORD: ${{ secrets.CHECKMARX_PASSWORD }}
+      # your checkmarx client secret
+      CHECKMARX_CLIENT_SECRET: ${{ secrets.CHECKMARX_CLIENT_SECRET }}
+      APM_ID: ${{ secrets.APM_ID }}
+      SPR_ID: ${{ secrets.SPR_ID }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+      ########### INFOSEC SECRETS FOR MEND SCAN, DO NOT MODIFY BELOW #################
+      MEND_ACTION_STS: ${{ secrets.MEND_ACTION_STS }}
+      ARCHER_SPR_API_TOKEN: ${{ secrets.ARCHER_SPR_API_TOKEN }}
+      INFOSEC_CONNECTIONKEY: ${{ secrets.INFOSEC_CONNECTIONKEY }}
+
+  mfe-deployment-dev:
+    name: Dev MFE Deployment
+    uses: ./.github/workflows/sw_mfe-deployment.yml
+    needs: ['code-scanners']
+    if: ${{ github.ref == 'refs/heads/master' }}
+    with:
+      github_actions_env: dev
+    secrets:
+      AZURE_CREDS: ${{ secrets.AZURE_CREDS }}
+
+  mfe-deployment-qa:
+    name: QA MFE Deployment
+    uses: ./.github/workflows/sw_mfe-deployment.yml
+    needs: ['mfe-deployment-dev']
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    with:
+      github_actions_env: qa
+    secrets:
+      AZURE_CREDS: ${{ secrets.AZURE_CREDS }}
+
+  mfe-deployment-uat:
+    name: UAT MFE Deployment
+    uses: ./.github/workflows/sw_mfe-deployment.yml
+    needs: ['mfe-deployment-qa']
+    if: ${{ github.ref == 'refs/heads/release-*' }}
+    with:
+      github_actions_env: uat
+    secrets:
+      AZURE_CREDS: ${{ secrets.AZURE_CREDS }}
+
+  mfe-deployment-prod:
+    name: Prod MFE Deployment
+    uses: ./.github/workflows/sw_mfe-deployment.yml
+    needs: ['mfe-deployment-uat']
+    if: ${{ github.ref == 'refs/heads/release-*' }}
+    with:
+      github_actions_env: prod
+    secrets:
+      AZURE_CREDS: ${{ secrets.AZURE_CREDS }}

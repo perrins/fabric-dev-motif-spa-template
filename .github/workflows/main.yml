@@ -1,0 +1,34 @@
+name: Create Secrets, Variables and Environments
+on:
+  workflow_dispatch:
+  
+jobs:
+  creates-secrets-and-vars:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Get repository name
+        id: repo_name
+        run: echo "::set-output name=repoName::$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2)"
+
+      - name: Use modified repo name
+        run: echo ${{ steps.repo_name.outputs.repoName }}
+
+      - name: Echo vars.json path
+        run: echo "${{ github.workspace }}/deploy/vars.json"
+        
+      - name: Copy secrets and vars from json
+        uses: ey-org/action-copy-secretsvars-json@master
+        id: foo
+        with:
+          path_json: "${{ github.workspace }}/deploy/vars.json"
+          github_token: ${{ secrets.GH_TOKEN }}
+          organization: ey-org
+          repo_name: ${{ steps.repo_name.outputs.repoName }}
+          
+      - name: Echo results
+        run: echo "get results ${{ steps.foo.outputs.result }}"
+        shell: bash
