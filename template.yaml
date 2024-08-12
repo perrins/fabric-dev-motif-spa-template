@@ -9,7 +9,7 @@ metadata:
     - react
 spec:
   owner: matt.perrins@ey.com
-  type: website
+  type: Service
   parameters:
     - title: Provide some simple information
       required:
