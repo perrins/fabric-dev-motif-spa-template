@@ -52,7 +52,7 @@ steps:
     name: Fetch Base
     action: fetch:template
     input:
-      url: ./content
+      url: .
       values:
         name: ${{ parameters.name }}
 
